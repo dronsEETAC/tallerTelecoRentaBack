@@ -109,6 +109,8 @@ def informar (mensaje):
 
 def RTL():
     global dron, RTLBtn
+    if dron.going:
+        dron.stopGo()
     # llamo en modo no bloqueante y le indico qué función debe activar al acabar la operación, y qué parámetro debe usar
     dron.RTL(blocking = False, callback = informar, params= 'EN CASA')
     # mientras retorno pongo el boton en amarillo
@@ -118,6 +120,8 @@ def RTL():
 
 def aterrizar():
     global dron, landBtn
+    if dron.going:
+        dron.stopGo()
     # llamo en modo no bloqueante y le indico qué función debe activar al acabar la operación, y qué parámetro debe usar
     dron.Land(blocking = False, callback = informar, params= 'EN TIERRA')
     # mientras retorno pongo el boton en amarillo
