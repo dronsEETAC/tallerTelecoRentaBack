@@ -1,4 +1,4 @@
-from TresPoses import initialize, prepareBody, detectPose
+from PoseDetector import initialize, prepareBody, detectPose
 import tkinter as tk
 import tkintermapview
 from tkinter import Canvas
@@ -15,6 +15,7 @@ class BodyFrameClass:
     def __init__(self, dron):
         self.dron = dron
 
+        # direcciones asociadas a cada una de las tres poses (si no se detecta ninguna de ellas el dron se parará)
         self.pose_commands = {1: "North",  # Pose 1
                               2: "NorthEast",  # Pose 2
                               3: "South"}  # Pose 3
@@ -28,7 +29,7 @@ class BodyFrameClass:
         self.BodyFrame.rowconfigure(1, weight=30)
 
         self.BodyFrame.columnconfigure(0, weight=1)
-        self.BodyFrame.columnconfigure(1, weight=1)
+
 
         # ===== BODY CONTROL FRAME =====
         self.mov_frame = tk.LabelFrame(self.BodyFrame, text="Movimiento")
@@ -36,30 +37,26 @@ class BodyFrameClass:
 
         self.mov_frame.rowconfigure(0, weight=1)
         self.mov_frame.rowconfigure(1, weight=1)
-
         self.mov_frame.columnconfigure(0, weight=1)
-        self.mov_frame.columnconfigure(1, weight=5)
+
 
         self.Button6 = tk.Button(self.mov_frame, text="Control por poses", bg="dark orange", fg="black", command=self.start_body_control)
-        self.Button6.grid(row=0, column=0, columnspan=2, padx=5, pady=3, sticky="nesw")
+        self.Button6.grid(row=0, column=0, padx=5, pady=3, sticky="nesw")
 
         self.Button7 = tk.Button(self.mov_frame, text="Detener control por poses", bg="dark orange", fg="black", command=self.stop_body_control)
-        self.Button7.grid(row=1, column=0, columnspan=2, padx=5, pady=3, sticky="nesw")
+        self.Button7.grid(row=1, column=0, padx=5, pady=3, sticky="nesw")
 
-        # Cargar imágenes
-        image1 = Image.open("C:\\Users\\Mariona\\Desktop\\TelecoRenta\\poses_1.png").resize((310, 310), Image.LANCZOS)    # Ruta a la imágen
-        image2 = Image.open("C:\\Users\\Mariona\\Desktop\\TelecoRenta\\poses_2.png").resize((305, 150), Image.LANCZOS)
-        tk_image1 = ImageTk.PhotoImage(image1)
-        tk_image2 = ImageTk.PhotoImage(image2)
+        # Cargar imágenes de las poses
+        image = Image.open("assets/poses.png").resize((600, 180), Image.LANCZOS)    # Ruta a la imágen
+        tk_image = ImageTk.PhotoImage(image)
+
 
         # Crear etiquetas para imágenes
-        label1 = tk.Label(self.BodyFrame, image=tk_image1)
-        label1.image = tk_image1
-        label2 = tk.Label(self.BodyFrame, image=tk_image2)
-        label2.image = tk_image2
+        label = tk.Label(self.BodyFrame, image=tk_image)
+        label.image = tk_image
 
-        label1.grid(row=1, column=0, padx=5, pady=2, sticky="new")
-        label2.grid(row=1, column=1, padx=5, pady=2, sticky="nsew")
+        label.grid(row=1, column=0, padx=5, pady=2, sticky="new")
+
 
         self.BodyFrame.pack(expand=True, fill="both")
 
@@ -72,32 +69,39 @@ class BodyFrameClass:
         messagebox.showinfo("Control con poses", "Mueve los brazos para seguir una trayectoria determinada")
         threading.Thread(target=self.capture_and_process_frames, daemon=True).start()
 
+    # En este thread iteramos para capturar el stream de video y detectar poses en cada frame de ese stream
     def capture_and_process_frames(self):
         cap = cv2.VideoCapture(0)
         initialize()
 
         while self.body_control_active:
+            # leemos un frame
             result, computer_frame = cap.read()
             if result:
-                computer_frame = cv2.resize(computer_frame, (720, 480))
+                computer_frame = cv2.resize(computer_frame, (480, 320))
+                # pedimos que nos den los puntos clave
                 body_landmarks, frame_with_landmarks = prepareBody(computer_frame)
                 frame_with_landmarks = cv2.flip(frame_with_landmarks, 1)
-
+                # si ha encontrado puntos clave
                 if len(body_landmarks) > 0:
+                    # preguntamos si conrresponden a alguna de las poses
                     mi_pose = detectPose(body_landmarks)
                     if mi_pose is not None:
+                        # corresponden a una pose
                         self.dron.changeNavSpeed(float(self.dron.navSpeed))
-                        print(f"navigation speed: {self.dron.navSpeed} ")
 
-                        self.dron.startGo()
-
+                        if not self.dron.going:
+                            # nos ponemos en modo navegación
+                            self.dron.startGo()
+                        # miramos en la lista de comandos cuál corresponde a la pose detactada
+                        # si no corresponde a ninguna nos dara "Stop"
                         command = self.pose_commands.get(mi_pose, "Stop")
                         self.dron.go(command)
-                        print("***** Detected pose:", mi_pose)
-                        print(f"Going to: {command}")
+                        # preparamos el texto para etiquetar la imagen con la información de la pose
+                        texto = 'Pose '+str(mi_pose) + ': '+command
 
-                    cv2.putText(frame_with_landmarks, f"Pose {mi_pose}", (100, 100),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2)
+                    cv2.putText(frame_with_landmarks, texto, (50, 50),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 
 
                 cv2.imshow("computer", frame_with_landmarks)
