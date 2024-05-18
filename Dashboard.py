@@ -31,17 +31,23 @@ def arm (button):
 
 def takeoff ():
     global dron, takeOffBtn
-    # despego siempre a una altura de 8 metros
-    alt = float(8)
-    # llamo en modo no bloqueante y le indico qué función debe activar al acabar la operación, y qué parámetro debe usar
-    dron.takeOff (alt, blocking=False,  callback=informar, params='VOLANDO')
-    # mientras despego pongo el boton en amarillo
-    takeOffBtn['bg'] = 'yellow'
-    takeOffBtn['text'] = 'Despegando....'
+    global alt_entry
+    try:
+        # altura de despeque prefijada
+        alt = 8
+        # llamo en modo no bloqueante y le indico qué función debe activar al acabar la operación, y qué parámetro debe usar
+        dron.takeOff (alt, blocking=False,  callback=informar, params='VOLANDO')
+        # mientras despego pongo el boton en amarillo
+        takeOffBtn['bg'] = 'yellow'
+        takeOffBtn['text'] = 'Despegando....'
+    except:
+        # en el cuadro de texto no hay ningún numero
+        messagebox.showerror("error", "Introducela altura para el despegue")
+
 
 # esta es la función que se activará cuando acaben las funciones no bloqueantes (despegue y RTL)
 def informar (mensaje):
-    global takeOffBtn, RTLBtn, connectBtn, armBtn
+    global takeOffBtn, RTLBtn, connectBtn, armBtn, landBtn
     global dron
     messagebox.showinfo("showinfo", "Mensaje del dron:--->  "+mensaje)
     if mensaje == 'VOLANDO':
@@ -49,11 +55,11 @@ def informar (mensaje):
         takeOffBtn['bg'] = 'green'
         takeOffBtn['fg'] = 'white'
         takeOffBtn['text'] = 'En el aire'
-    if mensaje == "EN TIERRA":
+    if mensaje == "EN CASA":
         # pongo el boton RTL en verde
         RTLBtn['bg'] = 'green'
         RTLBtn['fg'] = 'white'
-        RTLBtn['text'] = 'En tierra'
+        RTLBtn['text'] = 'En casa'
         # me desconecto del dron (eso tardará 5 segundos)
         dron.disconnect()
         # devuelvo los botones a la situación inicial
@@ -75,14 +81,18 @@ def informar (mensaje):
         RTLBtn['fg'] = 'black'
         RTLBtn['text'] = 'RTL'
 
-
 def RTL():
     global dron, RTLBtn
+    # si esta navegando detengo el modo de navegación
+    if dron.going:
+        dron.stopGo()
     # llamo en modo no bloqueante y le indico qué función debe activar al acabar la operación, y qué parámetro debe usar
-    dron.RTL(blocking = False, callback = informar, params= 'EN TIERRA')
+    dron.RTL(blocking = False, callback = informar, params= 'EN CASA')
     # mientras retorno pongo el boton en amarillo
     RTLBtn['bg'] = 'yellow'
     RTLBtn['text'] = 'Retornando....'
+
+
 
 # ====== NAVIGATION FUNCTIONS ======
 # Esta función se activa cada vez que cambiamos la velocidad de navegación con el slider
@@ -103,23 +113,20 @@ def crear_ventana():
     global dron
     global  altShowLbl, headingShowLbl,  speedSldr, gradesSldr, speedShowLbl
     global takeOffBtn, connectBtn, armBtn, takeOffBtn, RTLBtn
+    global alt_entry
 
     dron = Dron()
 
     ventana = tk.Tk()
     ventana.title("Ventana con botones y entradas")
     ventana.rowconfigure(0, weight=1)
-    ventana.rowconfigure(1, weight=1)
-    ventana.rowconfigure(2, weight=1)
-
     ventana.columnconfigure(0, weight=1)
     ventana.columnconfigure(1, weight=1)
-    ventana.columnconfigure(2, weight=1)
-    ventana.columnconfigure(3, weight=1)
+
 
     # Configuración del Frame de Control
     controlFrame = tk.LabelFrame(ventana, text="Control")
-    controlFrame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky=tk.N + tk.S + tk.E + tk.W)
+    controlFrame.grid(row=0, column=0, padx=10, pady=10, sticky=tk.N + tk.S + tk.E + tk.W)
 
     controlFrame.rowconfigure(0, weight=1)
     controlFrame.rowconfigure(1, weight=1)
@@ -127,31 +134,25 @@ def crear_ventana():
     controlFrame.rowconfigure(3, weight=1)
     controlFrame.rowconfigure(4, weight=1)
     controlFrame.rowconfigure(5, weight=1)
-    controlFrame.rowconfigure(6, weight=1)
-    controlFrame.rowconfigure(7, weight=1)
-    controlFrame.rowconfigure(8, weight=1)
-    controlFrame.rowconfigure(9, weight=1)
-    controlFrame.rowconfigure(10, weight=1)
+
 
     controlFrame.columnconfigure(0, weight=1)
-    controlFrame.columnconfigure(1, weight=1)
-    controlFrame.columnconfigure(2, weight=1)
-    controlFrame.columnconfigure(3, weight=1)
+
 
     connectBtn = tk.Button(controlFrame, text="Conectar", bg="dark orange", command = connect)
-    connectBtn.grid(row=0, column=0, columnspan=4, padx=3, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+    connectBtn.grid(row=0, column=0, padx=3, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
     # A la función que activamos al clicar en este boton le pasamos el propio boton para
     # que le cambie el color
     armBtn = tk.Button(controlFrame, text="Armar", bg="dark orange",
                        command=lambda: arm(armBtn))
-    armBtn.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+    armBtn.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
     takeOffBtn = tk.Button(controlFrame, text="Despegar", bg="dark orange", command=takeoff)
-    takeOffBtn.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+    takeOffBtn.grid(row=2, column=0,  padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
     RTLBtn = tk.Button(controlFrame, text="RTL", bg="dark orange", command=RTL)
-    RTLBtn.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+    RTLBtn.grid(row=3, column=0, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
 
 # ================= FRAME/BOTONES NAVEGACIÓN =================
@@ -159,10 +160,10 @@ def crear_ventana():
     speedSldr = tk.Scale(controlFrame, label="Velocidad (m/s):", resolution=1, from_=0, to=20, tickinterval=5,
                          orient=tk.HORIZONTAL, command=change_speed)
     speedSldr.set(1) # velocidad por defecto de 1 m/s
-    speedSldr.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+    speedSldr.grid(row=4, column=0, padx=5, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
     navFrame = tk.LabelFrame (controlFrame, text = "Navegación")
-    navFrame.grid(row=7, column=0, columnspan=4, padx=50, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+    navFrame.grid(row=5, column=0, padx=50, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
 
     # Configuración del Frame de Navegación
     navFrame.rowconfigure(0, weight=1)
@@ -215,7 +216,7 @@ def crear_ventana():
     # ================ FRAME ADICIONAL (AÑADIR FUNCIONALIDADES EXTRA/RETOS) ================
 
     userFrame = tk.LabelFrame(ventana, text="Funcionalidades extra")
-    userFrame.grid(row=0, column=3, padx=10, pady=10, sticky=tk.N + tk.S + tk.E + tk.W)
+    userFrame.grid(row=0, column=1, padx=10, pady=10, sticky=tk.N + tk.S + tk.E + tk.W)
 
     # Configuración del Frame de usuario: el usuario puede añadir/quitar filas y columnas como prefiera
     userFrame.rowconfigure(0, weight=1)
@@ -236,7 +237,7 @@ def crear_ventana():
     userFrame.columnconfigure(3, weight=1)
 
     # Estos botones se pueden configurar como se prefiera y añadir cualquier funcionalidad deseada
-    newButton1 = tk.Button(userFrame, text="Button 1", bg="light grey")
+    newButton1 = tk.Button(userFrame, text="Button 2", bg="light grey")
     newButton1.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky=tk.N + tk.E + tk.W)
 
     newButton2 = tk.Button(userFrame, text="Button 2", bg="light grey")
