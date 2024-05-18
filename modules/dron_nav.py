@@ -17,8 +17,9 @@ def _prepare_command(self, velocity_x, velocity_y, velocity_z, bodyRef = False):
     """
     Move vehicle in direction based on specified velocity vectors.
     """
-
+    print ('3 vamos ', bodyRef)
     if bodyRef:
+        print ('body')
         msg = mavutil.mavlink.MAVLink_set_position_target_local_ned_message(
             10,  # time_boot_ms (not used)
             self.vehicle.target_system,
@@ -39,6 +40,7 @@ def _prepare_command(self, velocity_x, velocity_y, velocity_z, bodyRef = False):
         )  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
     else:
+        print ('local ned')
         msg =  mavutil.mavlink.MAVLink_set_position_target_global_int_message(
             10,  # time_boot_ms (not used)
             self.vehicle.target_system,

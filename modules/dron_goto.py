@@ -15,7 +15,6 @@ def _distanceToDestinationInMeters(self, lat,lon):
 
 
 def _goto (self, lat, lon, alt, callback=None, params = None):
-    print("llegamos............................")
     self.vehicle.mav.send(
         mavutil.mavlink.MAVLink_set_position_target_global_int_message(10, self.vehicle.target_system,
                                                                        self.vehicle.target_component,
@@ -33,7 +32,6 @@ def _goto (self, lat, lon, alt, callback=None, params = None):
         dist = self._distanceToDestinationInMeters(lat, lon)
 
         if dist < self._distanceToDestinationInMeters(lat, lon):
-            print(f"Arrived to destination WP")
             break
 
 
@@ -55,7 +53,6 @@ def goto(self, lat, lon, alt, blocking=True, callback=None, params=None):
         self._goto(lat, lon, alt)
 
     elif blocking == False:
-        print("Non blocking call")
         gotoThread = threading.Thread(target=self._goto, args=[lat, lon, alt, callback, params])
         gotoThread.start()
 

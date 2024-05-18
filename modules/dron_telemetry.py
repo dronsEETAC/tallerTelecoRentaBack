@@ -1,9 +1,7 @@
-import json
+
 import math
 import threading
 import time
-
-from pymavlink import mavutil
 
 
 def _send_telemetry_info(self, process_telemetry_info):
@@ -18,7 +16,7 @@ def _send_telemetry_info(self, process_telemetry_info):
             self.alt = float(msg['relative_alt']/1000)
             self.heading = float(msg['hdg'] / 100)
 
-            vx = float(msg['vx'])
+            vx =  float(msg['vx'])
             vy = float(msg['vy'])
             self.groundSpeed = math.sqrt( vx*vx+vy*vy)/100
             telemetry_info = {
@@ -29,18 +27,18 @@ def _send_telemetry_info(self, process_telemetry_info):
                 'heading': self.heading,
                 'state': self.state
             }
-            if self.id == None:
-                process_telemetry_info(telemetry_info)
-            else:
-                process_telemetry_info(self.id, telemetry_info)
-        time.sleep(1)
 
+
+
+            if self.id == None:
+                process_telemetry_info (telemetry_info)
+            else:
+                process_telemetry_info (self.id, telemetry_info)
+        time.sleep(0.25)
 
 def send_telemetry_info(self, process_telemetry_info):
-    #if not hasattr(self, 'telemetryThread') or not self.telemetryThread.is_alive():
-    telemetryThread = threading.Thread(target=self._send_telemetry_info, args=[process_telemetry_info])
+    telemetryThread = threading.Thread(target=self._send_telemetry_info, args=[process_telemetry_info,])
     telemetryThread.start()
-
 
 def stop_sending_telemetry_info(self):
     self.sendTelemetryInfo = False

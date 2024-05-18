@@ -42,5 +42,3 @@ def arm(self, blocking=True, callback=None, params = None):
     else:
         return False
 
-'''def red_button(button):
-    button.config(bg='red')'''
