@@ -27,7 +27,6 @@ def _send_telemetry_info(self, process_telemetry_info):
                 'heading': self.heading,
                 'state': self.state
             }
-            #print ('global ', telemetry_info)
 
 
 

@@ -16,7 +16,6 @@ def _send_local_telemetry_info(self, process_local_telemetry_info):
 
 
     self.sendLocalTelemetryInfo = True
-    print ('empiezo con la telemetria local')
     while self.sendLocalTelemetryInfo:
         msg = self.vehicle.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout = 3)
 
