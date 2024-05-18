@@ -6,12 +6,11 @@ import time
 from pymavlink import mavutil
 
 
-def _send_telemetry_info(self, process_telemetry_info, update_position_callback):
+def _send_telemetry_info(self, process_telemetry_info):
     self.alt = 0
     self.sendTelemetryInfo = True
     while self.sendTelemetryInfo:
-        #msg = self.vehicle.recv_match(type='AHRS2', blocking= True).to_dict()
-        msg = self.vehicle.recv_match(type='GLOBAL_POSITION_INT', blocking= True)
+        msg = self.vehicle.recv_match(type='GLOBAL_POSITION_INT', blocking= True, timeout = 3)
         if msg:
             msg = msg.to_dict()
             self.lat = float(msg['lat'] / 10 ** 7)
@@ -30,8 +29,6 @@ def _send_telemetry_info(self, process_telemetry_info, update_position_callback)
                 'heading': self.heading,
                 'state': self.state
             }
-            update_position_callback(self.lat, self.lon)
-
             if self.id == None:
                 process_telemetry_info(telemetry_info)
             else:
@@ -39,9 +36,9 @@ def _send_telemetry_info(self, process_telemetry_info, update_position_callback)
         time.sleep(1)
 
 
-def send_telemetry_info(self, process_telemetry_info, update_position_callback):
+def send_telemetry_info(self, process_telemetry_info):
     #if not hasattr(self, 'telemetryThread') or not self.telemetryThread.is_alive():
-    telemetryThread = threading.Thread(target=self._send_telemetry_info, args=[process_telemetry_info, update_position_callback])
+    telemetryThread = threading.Thread(target=self._send_telemetry_info, args=[process_telemetry_info])
     telemetryThread.start()
 
 

@@ -14,7 +14,6 @@ def _takeOff(self, aTargetAltitude,callback=None, params = None):
             msg = msg.to_dict()
             alt = float(msg['relative_alt'] / 1000)
             if alt >= aTargetAltitude * 0.90:
-                print("Reached target altitude")
                 break
         time.sleep(2)
 

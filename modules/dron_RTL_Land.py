@@ -17,7 +17,6 @@ def _goDown(self, mode, callback=None, params = None):
         if msg:
             msg = msg.to_dict()
             alt = float(msg['relative_alt'] / 1000)
-            print (alt)
             if alt < 0.5:
                 break
             time.sleep(2)
@@ -25,7 +24,6 @@ def _goDown(self, mode, callback=None, params = None):
     self.vehicle.motors_disarmed_wait()
     self.state = "connected"
     if callback != None:
-        print ('llamo al call back')
         if self.id == None:
             if params == None:
                 callback()
@@ -56,7 +54,6 @@ def Land (self, blocking=True, callback=None, params = None):
         if blocking:
             self._goDown('LAND')
         else:
-            print ('pongo en marcha el thread para land')
             goingDownThread = threading.Thread(target=self._goDown, args=['LAND', callback, params])
             goingDownThread.start()
         return True
