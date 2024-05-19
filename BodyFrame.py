@@ -15,10 +15,14 @@ class BodyFrameClass:
     def __init__(self, dron):
         self.dron = dron
 
-        # direcciones asociadas a cada una de las tres poses (si no se detecta ninguna de ellas el dron se parará)
-        self.pose_commands = {1: "North",  # Pose 1
-                              2: "NorthEast",  # Pose 2
-                              3: "South"}  # Pose 3
+        # acciones asociadas a cada una de las poses (si no se detecta ninguna de ellas el dron se parará)
+        self.pose_commands = {1: "North",
+                              2: "NorthEast",
+                              3: "South",
+                              4: "East",
+                              5: "West",
+                              6: "RTL"
+                              }
 
         self.body_control_active = False
 
@@ -96,7 +100,10 @@ class BodyFrameClass:
                         # miramos en la lista de comandos cuál corresponde a la pose detactada
                         # si no corresponde a ninguna nos dara "Stop"
                         command = self.pose_commands.get(mi_pose, "Stop")
-                        self.dron.go(command)
+                        if mi_pose == 6:
+                            self.dron.RTL(blocking = False)
+                        else:
+                            self.dron.go(command)
                         # preparamos el texto para etiquetar la imagen con la información de la pose
                         texto = 'Pose '+str(mi_pose) + ': '+command
 
