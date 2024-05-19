@@ -175,9 +175,10 @@ class MapFrameClass:
         for element in self.geofenceElements:
             self.map_widget.delete(element)
 
-        # activamos el geofence
+        # activamos el geofence y le decimos que en caso de llegar al límite se quede allí parado
         parameters = json.dumps([
-                {'ID': "FENCE_ENABLE", 'Value': 1}
+            {'ID': "FENCE_ENABLE", 'Value': 1},
+            {'ID': "FENCE_ACTION", 'Value': 4}
         ])
         self.dron.setParams(parameters)
         messagebox.showinfo("Operación correcta", "El geo fence se ha establecido correctamente!")
